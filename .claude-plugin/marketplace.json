@@ -1,0 +1,15 @@
+{
+  "name": "korzy",
+  "owner": {
+    "name": "Korzy"
+  },
+  "metadata": {
+    "description": "Korzy parcel research for agents"
+  },
+  "plugins": [
+    {
+      "name": "korzy-research",
+      "source": "./plugins/korzy"
+    }
+  ]
+}

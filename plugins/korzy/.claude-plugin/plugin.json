@@ -1,0 +1,26 @@
+{
+  "name": "korzy-research",
+  "displayName": "Korzy",
+  "version": "0.3.0",
+  "description": "Find US land parcels by address or coordinates, read their records and owners, and check nearby utilities, environmental layers, logistics and data center projects.",
+  "author": {
+    "name": "Korzy, Inc.",
+    "url": "https://korzy.co/"
+  },
+  "homepage": "https://korzy.co/docs/mcp/",
+  "license": "MIT",
+  "keywords": [
+    "parcels",
+    "property",
+    "real-estate",
+    "land",
+    "site-selection",
+    "geospatial",
+    "mcp"
+  ],
+  "icon": "./assets/icon.svg",
+  "documentationUrl": "https://korzy.co/docs/mcp/",
+  "supportUrl": "https://korzy.co/contact/?topic=Plugin+support",
+  "privacyPolicyUrl": "https://korzy.co/privacy/",
+  "termsOfServiceUrl": "https://korzy.co/terms/"
+}

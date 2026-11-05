@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "korzy": {
+      "type": "http",
+      "url": "https://api.korzy.co/mcp"
+    }
+  }
+}

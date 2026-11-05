@@ -1,0 +1,4 @@
+interface:
+  display_name: "Korzy"
+  short_description: "US parcel search and research"
+  default_prompt: "Use $korzy to find the parcel at this address and summarize its record."
