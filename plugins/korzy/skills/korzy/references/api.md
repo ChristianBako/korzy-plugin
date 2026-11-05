@@ -1,50 +1,72 @@
 # Korzy REST API
 
-The REST API at `https://api.korzy.co` answers the same parcel workflow as the MCP tools. Send an API key with the `api:read` scope in the `Authorization: Bearer <key>` header; create keys at https://app.korzy.co/account. Never put a key in a URL. URL-encode query values. The full reference is at https://korzy.co/docs/reference/.
+The REST API at `https://api.korzy.co/v1` answers the same parcel workflow as the MCP tools. Send an API key with the `api:read` scope in the `Authorization: Bearer <key>` header; create keys at https://app.korzy.co/account. Never put a key in a URL. Send JSON bodies (up to 64 KB) with `Content-Type: application/json`. The full reference is at https://korzy.co/docs/reference/.
 
-## Parcels
+## Routes
 
-| Step | Request | Credits |
+| Request | Does | Credits |
 | --- | --- | --- |
-| Find by address | `GET /api/search?q=714 Mordecai Towne Pl, Raleigh, NC` | 1; 2 with `include_owner=true` |
-| Find by point | `GET /api/query/point?longitude=-78.6270&latitude=35.7999&limit=10` | 1 per 10 records requested; doubled with `include_owner=true` |
-| Parcel record | `GET /api/parcel-record?korzy_id=37183-676db8ae68362b7a3685` | 1; 2 with `include_owner=true` |
+| `POST /v1/lookup` | Parcels at an address or point, plus optional sections | 1, plus 1 per section (2 for `terrain`) |
+| `POST /v1/enrich` | Selected fields for up to 25 addresses, points or parcel IDs | 1 per item; 2 with the owner group |
+| `GET /v1/records/{id}` | One record by the `id` a lookup or enrich returned (URL-encode it) | 1 |
+| `POST /v1/ask` | One question about one place, answered from Korzy data with citations | 10 per completed answer |
+| `POST /v1/ask/stream` | The same answer as server-sent events | 10 per completed answer |
+| `POST /v1/support` | Files a feature, data or bug ticket with Korzy | Free |
+| `GET /v1/fields` | Sections, field groups, presets, record ID formats, prices and attribution | Free |
 
-- **Address search** (`q`, 3–160 characters) returns `results`, each with `korzy_id` where known, `address`, `city`, `postcode`, `county`, `longitude`, `latitude`, `match_type` (`exact`, `partial` or `approximate`) and the parcel's published fields. An exact match returns only the exact matches; otherwise up to 15 ranked candidates. Include the state for the most precise results.
-- **Point** returns every parcel whose boundary covers the point, including overlapping condo units. `limit` is 1–100 (default 20) and `offset` stops at 1,000.
-- **Parcel record** takes the `korzy_id` from a search or point result.
-- Add `include_owner=true` to any of these for owner names and mailing addresses where the source publishes them. Leave it off unless ownership is needed.
+Every successful JSON response includes `request_id` and `credits` (`charged`, `refunded`). Errors return `{"detail": ..., "code": ...}`.
 
-## Point context
+## Lookup
 
-These routes take `lon` and `lat`.
+```json
+{"address": "714 Mordecai Towne Pl, Raleigh, NC", "sections": ["utilities", "environment"]}
+```
 
-| Request | Returns | Credits |
-| --- | --- | --- |
-| `GET /api/utilities/context?lon=-78.6270&lat=35.7999` | Water and sewer service areas at the point and nearby treatment plants | 1 |
-| `GET /api/environment/context?lon=-78.6270&lat=35.7999&radius_km=10&limit=5` | Flood zones, wetlands, protected areas and cleanup sites; `radius_km` up to 10 | 1 per 10 records requested |
-| `GET /api/logistics/context?lon=-78.6270&lat=35.7999&radius_km=25&limit=5` | Roads, rail, ports, airports and warehouses; `radius_km` up to 25; optional `layers` | 1 per 10 records requested |
-| `GET /api/datacenters/context?lon=-77.4874&lat=39.0438&radius_km=10&limit=5` | Data center projects near the point; `radius_km` up to 10 | 1 per 10 records requested |
+Give exactly one location: `address` (3–160 characters, exact matches only; otherwise `404 address_not_found`) or `longitude` and `latitude` (WGS84). The response has `location`, `parcels.records` (the parcels covering the point, up to 20, each with `id` and `korzy_id`) and one entry per requested section with `status` (`ok`, `unavailable` or `error`), `data` and `provenance`.
 
-## Records by ID
-
-| Request | Credits |
+| Section | Returns |
 | --- | --- |
-| `GET /api/datacenters/projects/{project_id}` (URL-encode the ID) | 1 |
-| `GET /api/utilities/{layer}/record?feature_id=...` | 1 |
-| `GET /api/power/plants/{plant_id}` | 1 |
-| `GET /api/energy/plants/{plant_id}` | 1 per 10 records requested |
-| `GET /api/energy/regions/{region}` | 1 per 10 records requested |
-| `GET /api/energy/coal-mines/{mine_id}/shipments` | 1 per 10 records requested |
-| `GET /api/grid/transfers?interface=...&date=YYYY-MM-DD` | 1 |
+| `utilities` | Water and sewer service areas at the point and treatment plants within 50 km |
+| `environment` | Flood zones, wetlands, protected areas, critical habitat, air quality areas, brownfields and Superfund sites within 10 km, with mapped coverage |
+| `logistics` | Roads, rail, ports, airports and warehouses within 25 km |
+| `datacenters` | Data center projects within 10 km |
+| `power` | Power plants within 50 km, with nameplate MW and primary fuel |
+| `grid` | Published load capacity records and transmission lines near the point |
+| `terrain` | Elevation and slope across the first parcel |
 
-Free discovery: `GET /api/query/catalog` (coverage, dates, layer keys) and `GET /api/summary` (parcel counts by state).
+Sections that aren't `ok` are refunded. Lookups never return owner fields.
 
-When a page returns a `run_id`, pass it unchanged on later pages. Searching a whole area or listing many records isn't available through the API (`403 range_queries_unavailable`), and whole map layers are served to the Korzy map only (`403 map_only_route`): query by address, point or record ID.
+## Enrich
+
+```json
+{"items": [{"address": "714 Mordecai Towne Pl, Raleigh, NC"}, {"longitude": -78.6270, "latitude": 35.7999}, {"korzy_id": "37183-676db8ae68362b7a3685"}], "preset": "basic"}
+```
+
+Send `fields` (group or field names) or `preset` (`basic`, `standard`, `owner`; default `standard`), not both. Groups: `identity`, `address`, `location`, `land`, `building`, `value`, `sale` and `owner`. Each result has `index`, `status` (`ok` or `error`), `records` and its own `credits`; failed items are refunded. Owner names and mailing addresses come only from the `owner` group, which doubles each item's cost; request it only when ownership is needed.
+
+## Records
+
+`GET /v1/records/37183-676db8ae68362b7a3685` returns `id`, `type`, `record` and `provenance`. IDs round-trip exactly as returned: a parcel `korzy_id`, or `plant:`, `datacenter:`, `utility:`, `energy:`, `capacity:`, `property:` and `poi:` forms from lookup sections. `GET /v1/fields` lists the formats.
+
+## Ask
+
+```json
+{"question": "Is this parcel in a mapped flood zone?", "address": "714 Mordecai Towne Pl, Raleigh, NC"}
+```
+
+`question` is 3–1000 characters, with `address` or `longitude` and `latitude`. `/v1/ask` returns `answer`, `citations` (`ref`, `id`, `field`, `source`, `as_of`), `model` and `usage`. `/v1/ask/stream` sends `start`, `step`, `delta` and `done` events, or `error`; a stream that ends without `done` is refunded. Answers never use owner fields.
+
+## Support
+
+```json
+{"type": "data", "message": "Please add parcel coverage for Loving County, TX.", "context": {"request_id": "..."}}
+```
+
+`type` is `feature`, `data` or `bug`; `message` is up to 4000 characters; optional `context` takes `request_id`, `korzy_id`, `longitude`, `latitude` and `endpoint`. It creates a ticket and returns `201` with `ticket_id` and `status`. Send it only when the user asks.
 
 ## Credits
 
-API and MCP requests share the account's credits. Catalogs and summaries are free; a record or address search costs 1 credit; record pages cost 1 credit per 10 records requested (the `limit`, or the route's default); `include_owner=true` doubles the cost. Requests spend the plan's monthly credits first, then extra credits bought on the account page. Monthly credits reset at the start of each calendar month (UTC), and unused monthly credits carry over once. When credits run out, requests return `429`; nothing is charged automatically.
+API and MCP requests share the account's credits. Requests spend the plan's monthly credits first, then extra credits bought on the account page. Monthly credits reset at the start of each calendar month (UTC), and unused monthly credits carry over once. Any failed request is refunded. When credits run out, requests return `429`; nothing is charged automatically.
 
 ## Errors
 
@@ -52,9 +74,8 @@ API and MCP requests share the account's credits. Catalogs and summaries are fre
 | --- | --- |
 | `401` | Check the key; it may be revoked or expired |
 | `402` | `subscription_required`: the account needs a plan |
-| `403` | The key lacks the scope, or the route isn't available to the API |
-| `404` | Check the record ID; don't guess a replacement |
-| `409` | The data changed between pages; start again from the first page |
-| `422` | Correct the parameter the body names |
-| `429` | Wait for `Retry-After`; monthly exhaustion also returns `resets_at` |
-| `503` | Temporarily unavailable; retry after `Retry-After` with backoff |
+| `403` | The key lacks `api:read`, or owner data isn't available to the organization (`owner_data_unavailable`) |
+| `404` | `address_not_found` or `record_not_found`: check the address or ID; don't guess a replacement |
+| `422` | `invalid_request` or `invalid_id`: correct the field the body names |
+| `429` | Wait for `Retry-After`; monthly exhaustion also returns `resets_at`; `ask_rate_limited` and `support_rate_limited` are per-organization limits |
+| `503` | Temporarily unavailable (`ask_capacity`, `ask_unavailable`); retry after `Retry-After` with backoff |

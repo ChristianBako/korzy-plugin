@@ -1,7 +1,7 @@
 {
   "name": "korzy-research",
-  "version": "0.3.0",
-  "description": "Find US land parcels by address or coordinates, read their records and owners, and check nearby utilities, environmental layers, logistics and data center projects.",
+  "version": "0.4.0",
+  "description": "Look up US land parcels by address or coordinates, enrich lists of places, read records, add owners only when asked, and check nearby utilities, environment, logistics, power, grid and data centers.",
   "author": {
     "name": "Korzy, Inc.",
     "url": "https://korzy.co/"
@@ -22,14 +22,14 @@
   "interface": {
     "displayName": "Korzy",
     "shortDescription": "US parcel search and research",
-    "longDescription": "Korzy is parcel research for analysts and teams evaluating land in the United States. Look up a parcel by street address or coordinates and read its published record: parcel ID, land use, reported acreage, building size, assessed value and last sale. Owner names and mailing addresses are added only when you ask, at double the credit cost.\n\nThen check what is around the site: water and sewer service areas and treatment plants, flood zones, wetlands and other environmental layers, nearby roads, rail, ports and airports, data center projects, and the parcel's terrain. Answers cite parcel IDs, record dates and units, and say when a record is missing.\n\nThe plugin connects to Korzy's MCP server and includes a parcel research skill, a getting-started skill and REST API instructions. It requires a Korzy Professional or Business plan; you sign in with your Korzy account the first time it connects.",
+    "longDescription": "Korzy is parcel research for analysts and teams evaluating land in the United States. Look up a parcel by street address or coordinates and read its published record: parcel ID, land use, reported acreage, building size, assessed value and last sale. Enrich up to 25 addresses, points or parcel IDs in one request with the fields you choose. Owner names and mailing addresses are added only when you ask, at double the credit cost.\n\nAdd what is around the site in the same lookup: water and sewer service areas and treatment plants, flood zones, wetlands and other environmental layers, roads, rail, ports and airports, power plants, grid load capacity and transmission lines, data center projects, and the parcel's terrain. Open any returned record by its ID, or ask a question about a place and get an answer from Korzy data with citations. Answers cite parcel IDs, record dates and units, and say when a record is missing. You can also report a data problem or request a feature as a support ticket.\n\nThe plugin connects to Korzy's MCP server and includes a parcel research skill, a getting-started skill and REST API instructions. It requires a Korzy Professional or Business plan; you sign in with your Korzy account the first time it connects.",
     "developerName": "Korzy, Inc.",
     "category": "Data & Analytics",
     "capabilities": [
-      "Search parcels by address",
-      "Find parcels at coordinates",
-      "Read parcel records and owners",
-      "Check nearby site context"
+      "Look up parcels by address",
+      "Enrich up to 25 places at once",
+      "Check nearby site context",
+      "Ask questions about a place"
     ],
     "websiteURL": "https://korzy.co/",
     "supportURL": "https://korzy.co/contact/?topic=Plugin+support",
@@ -37,7 +37,7 @@
     "termsOfServiceURL": "https://korzy.co/terms/",
     "defaultPrompt": [
       "Look up the parcel at an address I provide and summarize its record.",
-      "What parcel is at these coordinates, and what utilities and data centers are nearby?",
+      "What parcel is at these coordinates, and which power plants and data centers are nearby?",
       "Check a parcel for flood zones, wetlands and nearby transport."
     ],
     "brandColor": "#550022",

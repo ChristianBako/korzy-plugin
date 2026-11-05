@@ -1,6 +1,6 @@
 # Korzy plugin
 
-Parcel research for Claude Code, Codex and Hermes. Find a US land parcel by street address or coordinates, read its record, add owner names only when you ask, and check nearby utilities, environmental layers, logistics and data center projects. The plugin runs no local code: it connects your agent to Korzy's MCP server at `https://api.korzy.co/mcp`, and you sign in with your Korzy account the first time it connects.
+Parcel research for Claude Code, Codex and Hermes. Find a US land parcel by street address or coordinates, read its record, enrich up to 25 places at once, add owner names only when you ask, check nearby utilities, environmental layers, logistics, power plants, grid capacity and data center projects, and ask questions answered from Korzy data. The plugin runs no local code: it connects your agent to Korzy's MCP server at `https://api.korzy.co/mcp`, and you sign in with your Korzy account the first time it connects.
 
 Korzy requires a paid plan. Sign up at [app.korzy.co](https://app.korzy.co/auth/signup) and see [pricing](https://korzy.co/pricing/).
 

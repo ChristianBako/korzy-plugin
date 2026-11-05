@@ -10,7 +10,7 @@
     {
       "name": "korzy-research",
       "source": "plugins/korzy",
-      "description": "Find US land parcels by address or coordinates, read their records and owners, and check nearby utilities, environmental layers, logistics and data center projects."
+      "description": "Look up US land parcels by address or coordinates, enrich lists of places, read records, add owners only when asked, and check nearby utilities, environment, logistics, power, grid and data centers."
     }
   ]
 }

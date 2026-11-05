@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "korzy-research",
-  "version": "0.3.0",
-  "description": "Find US land parcels by address or coordinates, read their records and owners, and check nearby utilities, environmental layers, logistics and data center projects.",
+  "version": "0.4.0",
+  "description": "Look up US land parcels by address or coordinates, enrich lists of places, read records, add owners only when asked, and check nearby utilities, environment, logistics, power, grid and data centers.",
   "author": {
     "name": "Korzy, Inc.",
     "url": "https://korzy.co/"
@@ -23,14 +23,14 @@
       "interface": {
         "displayName": "Korzy",
         "shortDescription": "US parcel search and research",
-        "longDescription": "Korzy is parcel research for analysts and teams evaluating land in the United States. Look up a parcel by street address or coordinates and read its published record: parcel ID, land use, reported acreage, building size, assessed value and last sale. Owner names and mailing addresses are added only when you ask, at double the credit cost.\n\nThen check what is around the site: water and sewer service areas and treatment plants, flood zones, wetlands and other environmental layers, nearby roads, rail, ports and airports, data center projects, and the parcel's terrain. Answers cite parcel IDs, record dates and units, and say when a record is missing.\n\nThe plugin connects to Korzy's MCP server and includes a parcel research skill, a getting-started skill and REST API instructions. It requires a Korzy Professional or Business plan; you sign in with your Korzy account the first time it connects.",
+        "longDescription": "Korzy is parcel research for analysts and teams evaluating land in the United States. Look up a parcel by street address or coordinates and read its published record: parcel ID, land use, reported acreage, building size, assessed value and last sale. Enrich up to 25 addresses, points or parcel IDs in one request with the fields you choose. Owner names and mailing addresses are added only when you ask, at double the credit cost.\n\nAdd what is around the site in the same lookup: water and sewer service areas and treatment plants, flood zones, wetlands and other environmental layers, roads, rail, ports and airports, power plants, grid load capacity and transmission lines, data center projects, and the parcel's terrain. Open any returned record by its ID, or ask a question about a place and get an answer from Korzy data with citations. Answers cite parcel IDs, record dates and units, and say when a record is missing. You can also report a data problem or request a feature as a support ticket.\n\nThe plugin connects to Korzy's MCP server and includes a parcel research skill, a getting-started skill and REST API instructions. It requires a Korzy Professional or Business plan; you sign in with your Korzy account the first time it connects.",
         "developerName": "Korzy, Inc.",
         "category": "Data & Analytics",
         "capabilities": [
-          "Search parcels by address",
-          "Find parcels at coordinates",
-          "Read parcel records and owners",
-          "Check nearby site context"
+          "Look up parcels by address",
+          "Enrich up to 25 places at once",
+          "Check nearby site context",
+          "Ask questions about a place"
         ],
         "websiteURL": "https://korzy.co/",
         "supportURL": "https://korzy.co/contact/?topic=Plugin+support",
@@ -38,7 +38,7 @@
         "termsOfServiceURL": "https://korzy.co/terms/",
         "defaultPrompt": [
           "Look up the parcel at an address I provide and summarize its record.",
-          "What parcel is at these coordinates, and what utilities and data centers are nearby?",
+          "What parcel is at these coordinates, and which power plants and data centers are nearby?",
           "Check a parcel for flood zones, wetlands and nearby transport."
         ],
         "brandColor": "#550022",
@@ -56,49 +56,49 @@
             {
               "description": "Address lookup: the user wants the record for one street address.",
               "prompt": "Look up the parcel at 714 Mordecai Towne Pl, Raleigh, NC and summarize its record.",
-              "tools_triggered": "search_parcels",
-              "expected_behavior": "Calls search_parcels with the address, finds the exact match and summarizes its korzy_id, land use, reported acreage, building size, assessed value and last sale with the record date. Does not request owner fields."
+              "tools_triggered": "lookup",
+              "expected_behavior": "Calls lookup with the address and no sections, and summarizes the matching parcel's korzy_id, land use, reported acreage, building size, assessed value and last sale with the record date. Does not request owner fields."
             },
             {
-              "description": "Coordinate lookup: the user gives a point instead of an address.",
-              "prompt": "What parcel is at latitude 35.7999, longitude -78.6270? Give me its full record.",
-              "tools_triggered": "get_site_context, get_parcel",
-              "expected_behavior": "Calls get_site_context at the point to find the covering parcel, then get_parcel with its korzy_id and the point, and summarizes the record with its map link."
+              "description": "Coordinate lookup with nearby data center projects, then one project opened by ID.",
+              "prompt": "What parcel is at latitude 39.0438, longitude -77.4874, and what is the status of the closest data center project?",
+              "tools_triggered": "lookup, get_record",
+              "expected_behavior": "Calls lookup at the point with the datacenters section, reports the covering parcel and the nearby projects with distances, then calls get_record with the closest project's id and reports its status, operator and reported capacity with dates."
             },
             {
-              "description": "Ownership requested explicitly, which costs double.",
-              "prompt": "Who owns the parcel at 714 Mordecai Towne Pl, Raleigh, NC?",
-              "tools_triggered": "search_parcels",
-              "expected_behavior": "Calls search_parcels with include_owner=true and reports the published owner name and mailing address, noting that this is the published record rather than proof of title. Provides no phone numbers or emails."
+              "description": "Ownership requested explicitly for a short list of addresses, which costs double per item.",
+              "prompt": "Who owns these two parcels: 714 Mordecai Towne Pl, Raleigh, NC, and 1600 Glenarm Pl, Denver, CO?",
+              "tools_triggered": "enrich",
+              "expected_behavior": "Calls enrich once with both addresses and the owner group (preset owner), and reports each published owner name and mailing address, noting that this is the published record rather than proof of title. Reports any item that failed. Provides no phone numbers or emails."
             },
             {
-              "description": "Environmental and utility screening for an address.",
-              "prompt": "Is the parcel at 714 Mordecai Towne Pl, Raleigh, NC in a flood zone, and what water and sewer service covers it?",
-              "tools_triggered": "search_parcels, get_site_context, get_environment_context",
-              "expected_behavior": "Finds the parcel, then reports the water and sewer service areas from get_site_context and the flood zone and other mapped layers from get_environment_context, saying that mapped service areas do not confirm service."
+              "description": "A screening question answered by Korzy's ask tool with citations.",
+              "prompt": "Ask Korzy whether the parcel at 714 Mordecai Towne Pl, Raleigh, NC is in a mapped flood zone and what water and sewer service covers it.",
+              "tools_triggered": "ask",
+              "expected_behavior": "Calls ask with the question and the address, and relays the answer with its citations, saying that a mapped service area does not confirm service and that no flood polygon means unknown rather than outside a flood zone."
             },
             {
-              "description": "Data center projects near a point.",
-              "prompt": "Which data center projects are near latitude 39.0438, longitude -77.4874, and what is the status of the closest one?",
-              "tools_triggered": "get_site_context, get_data_center",
-              "expected_behavior": "Lists nearby data center projects with distances from get_site_context, then opens the closest with get_data_center and reports its status, operator and reported capacity with dates."
+              "description": "The user reports wrong data and wants Korzy to fix it.",
+              "prompt": "The year built Korzy shows for 714 Mordecai Towne Pl, Raleigh, NC is wrong; it was built in 2004. Please report it to Korzy.",
+              "tools_triggered": "lookup, support_request",
+              "expected_behavior": "Looks up the parcel to get its korzy_id, then calls support_request with type data, a message describing the reported year built, and the korzy_id in context, and reports the returned ticket_id."
             }
           ],
           "negative": [
             {
-              "description": "Unrelated request: Korzy tools should not be used.",
-              "prompt": "What is the weather forecast for Chicago this weekend?",
-              "expected_behavior": "Does not call Korzy tools."
+              "description": "Bulk listing across an area, which Korzy does not offer.",
+              "prompt": "List every 100-acre or larger parcel in Loudoun County, Virginia.",
+              "expected_behavior": "Explains that listing every parcel in an area isn't available, offers to look up or enrich specific addresses or points, and does not invent a list."
             },
             {
               "description": "Request for a property owner's personal contact details, which Korzy does not provide.",
               "prompt": "Find the phone number and email of the owner of 338 5th Avenue in New York.",
-              "expected_behavior": "Does not provide or invent personal contact information; may offer the parcel record and published owner name instead."
+              "expected_behavior": "Does not provide or invent personal contact information; may offer the published owner name and mailing address through enrich if the user wants them."
             },
             {
-              "description": "Bulk listing across an area, which Korzy does not offer.",
-              "prompt": "List every 100-acre or larger parcel in Loudoun County, Virginia.",
-              "expected_behavior": "Explains that searching a whole area or listing many parcels isn't available, offers to look up specific addresses or points, and does not invent a list."
+              "description": "A property outside the United States, which Korzy does not cover.",
+              "prompt": "Look up the land registry record for 10 Downing Street, London.",
+              "expected_behavior": "Explains that Korzy covers US parcels only, does not call Korzy tools for the address and does not invent a record."
             }
           ]
         }
@@ -107,7 +107,7 @@
         "countries": [
           "US"
         ],
-        "release_notes": "Parcel search: find a parcel by address or coordinates, read its record by korzy_id, add owners only on request, and check nearby utilities, environmental layers, logistics and data center projects. Updated for current Korzy plans and API."
+        "release_notes": "Rebuilt for the Korzy /v1 API: lookup a parcel by address or coordinates with optional nearby sections (utilities, environment, logistics, data centers, power, grid, terrain), enrich up to 25 places with chosen fields, open any record by ID, ask questions answered from Korzy data, list fields and prices, and file support tickets. Owners only through enrich on request."
       }
     }
   }

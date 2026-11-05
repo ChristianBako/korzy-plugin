@@ -47,10 +47,10 @@ Use `skills_list` to find the Korzy skill, then `skill_view` to load it.
 
 ## API keys
 
-For automation or a client without browser sign-in, create a key at https://app.korzy.co/account with `mcp:read` (and `api:read` for REST) and follow https://korzy.co/docs/mcp/#connect. Keep keys in a secret manager, never in a prompt or a committed file, and don't combine a key with sign-in.
+For automation or a client without browser sign-in, create a key at https://app.korzy.co/account with `mcp:read` (and `api:read` for the REST API at `https://api.korzy.co/v1`) and follow https://korzy.co/docs/mcp/#connect. Keep keys in a secret manager, never in a prompt or a committed file, and don't combine a key with sign-in.
 
 ## Verify
 
-Ask the agent to call `list_datasets`. A working connection returns datasets with coverage and dates. Signing in to the Korzy website doesn't connect your agent; the agent needs its own sign-in or key. The first request after a quiet period can take a little longer.
+Ask the agent to call `list_fields`. It is free, and a working connection returns the lookup sections, field groups and credit prices. Signing in to the Korzy website doesn't connect your agent; the agent needs its own sign-in or key. The first request after a quiet period can take a little longer.
 
 Client guides: [Claude Code plugins](https://code.claude.com/docs/en/plugins), [Codex plugins](https://developers.openai.com/plugins/build/plugins), [Hermes plugins](https://hermes-agent.nousresearch.com/docs/developer-guide/plugins).
