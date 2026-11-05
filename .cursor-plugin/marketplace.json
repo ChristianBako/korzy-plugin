@@ -1,0 +1,16 @@
+{
+  "name": "korzy",
+  "owner": {
+    "name": "Korzy, Inc."
+  },
+  "metadata": {
+    "description": "Korzy parcel research for agents"
+  },
+  "plugins": [
+    {
+      "name": "korzy-research",
+      "source": "plugins/korzy",
+      "description": "Find US land parcels by address or coordinates, read their records and owners, and check nearby utilities, environmental layers, logistics and data center projects."
+    }
+  ]
+}
